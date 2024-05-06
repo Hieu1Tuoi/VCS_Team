@@ -11,9 +11,9 @@ app.use(express.json());
 
 const connection = mysql.createConnection({
   host: "localhost",
-  user: "goodog", // Thay username bằng tên người dùng của bạn
-  password: "Ptit2021", // Thay password bằng mật khẩu của bạn
-  database: "CNPM", // Thay database_name bằng tên cơ sở dữ liệu của bạn
+  user: "root", // Thay username bằng tên người dùng của bạn
+  password: "", // Thay password bằng mật khẩu của bạn
+  database: "DBPT", // Thay database_name bằng tên cơ sở dữ liệu của bạn
 });
 
 // Route để xác thực người dùng
@@ -36,9 +36,18 @@ app.post("/api/login", (req, res) => {
 
     // Truy vấn thành công, trả về thông tin người dùng
     const user = results[0];
+    
+    // Kiểm tra trạng thái tài khoản
+    if (user.state === 0) {
+      return res.status(403).json({ message: "Account is blocked. Please contact to admin!!!" });
+    }
+
+    // Truy vấn thành công và tài khoản không bị khóa, trả về thông tin người dùng
     res.status(200).json({ message: "Login successful", user });
   });
 });
+
+
 app.post("/api/create-post", (req, res) => {
   const { description, price, area, location } = req.body;
 
@@ -75,6 +84,7 @@ app.get("/api/posts", (req, res) => {
     res.status(200).json(results);
   });
 });
+
 app.post("/api/signup", async (req, res) => {
   // Check for validation errors
   const errors = validationResult(req);
@@ -87,19 +97,26 @@ app.post("/api/signup", async (req, res) => {
   try {
     // Check if user already exists
     const existingUser = await connection.query(
-      "SELECT * FROM account WHERE username = ? or email = ?",
-      [username, email]
+      "SELECT * FROM account WHERE email = ?",
+      [email]
     );
     if (existingUser.length > 0) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash the password
+    // Hash the password (You should use a proper hashing library like bcrypt)
+    // For example: const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert new user into the database
     await connection.query(
-      "INSERT INTO account (username, email, phone, password,role) VALUES (?, ?, ?, ?, ?)",
-      [username, email, phone, password, 0]
+      "INSERT INTO account (email, state, password, role) VALUES (?, ?, ?, ?)",
+      [email, 1, password, 2]
+    );
+
+    // Insert user information into the userinfo table
+    await connection.query(
+      "INSERT INTO userinfo (name, phone, email) VALUES (?, ?, ?)",
+      [username, phone, email,]
     );
 
     res.status(201).json({ message: "User created successfully" });
@@ -108,6 +125,8 @@ app.post("/api/signup", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 app.get("/api/detail/:id", (req, res) => {
   const postId = req.params.id;
 
