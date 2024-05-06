@@ -33,11 +33,10 @@ app.post("/api/login", (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Truy vấn thành công, trả về thông tin người dùng
     const user = results[0];
     
     // Kiểm tra trạng thái tài khoản
-    if (user.state === 0) {
+    if (user.state === "0") {
       return res.status(403).json({ message: "Account is blocked. Please contact to admin!!!" });
     }
 
@@ -45,6 +44,7 @@ app.post("/api/login", (req, res) => {
     res.status(200).json({ message: "Login successful", user });
   });
 });
+
 
 
 app.post("/api/create-post", (req, res) => {
