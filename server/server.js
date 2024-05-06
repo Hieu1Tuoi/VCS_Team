@@ -39,7 +39,7 @@ app.post("/api/login", (req, res) => {
     
     // Kiểm tra trạng thái tài khoản
     if (user.state === 0) {
-      return res.status(403).json({ message: "Account is blocked. Please contact to admin!!!" });
+      return res.status(403).json({ message: "Account is block dsadsadsaed. Please contact to admin!!!" });
     }
 
     // Truy vấn thành công và tài khoản không bị khóa, trả về thông tin người dùng
