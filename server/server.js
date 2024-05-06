@@ -2,10 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
 const { check, validationResult } = require("express-validator");
-
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+const images = [];
 app.use(cors());
 app.use(express.json());
 
@@ -95,38 +94,39 @@ app.post("/api/signup", async (req, res) => {
   const { username, email, phone, password } = req.body;
 
   try {
-    // Check if user already exists
+    // Check if the email already exists in the database
     const existingUser = await connection.query(
       "SELECT * FROM account WHERE email = ?",
       [email]
     );
+
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: "User already exists" });
+      // Email already exists, return 409 Conflict status
+      return res
+        .status(409)
+        .json({ message: "Email address is already in use" });
     }
 
-    // Hash the password (You should use a proper hashing library like bcrypt)
-    // For example: const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash the password
 
     // Insert new user into the database
     await connection.query(
-      "INSERT INTO account (email, state, password, role) VALUES (?, ?, ?, ?)",
-      [email, 1, password, 2]
+      "INSERT INTO account (username, email, phone, password,role) VALUES (?, ?, ?, ?, ?)",
+      [username, email, phone, password, 0]
     );
 
-    // Insert user information into the userinfo table
-    await connection.query(
-      "INSERT INTO userinfo (name, phone, email) VALUES (?, ?, ?)",
-      [username, phone, email,]
-    );
-
+    // User created successfully, return 201 Created status
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    if (error.code === "ER_DUP_ENTRY") {
+      // Handle duplicate entry error
+      res.status(409).json({ message: "Email address is already in use" });
+    } else {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 });
-
-
 app.get("/api/detail/:id", (req, res) => {
   const postId = req.params.id;
 
@@ -175,7 +175,20 @@ app.get("/api/detail/:id", (req, res) => {
     );
   });
 });
+app.get("/api/images/:id", (req, res) => {
+  const { id } = req.params;
 
+  // Tìm kiếm hình ảnh trong cơ sở dữ liệu
+  const image = co.find((img) => img.id === id);
+
+  if (!image) {
+    return res.status(404).json({ error: "Image not found" });
+  }
+
+  // Trả về dữ liệu hình ảnh
+  res.set("Content-Type", "image/jpeg");
+  res.send(image.data); // Giả sử dữ liệu hình ảnh đã được lưu dưới dạng mảng byte
+});
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

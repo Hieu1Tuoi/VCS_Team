@@ -48,14 +48,26 @@ const RegistrationForm = () => {
       setErrors(newErrors);
     } else {
       setErrors({});
+
       try {
         const response = await axios.post(
           "http://localhost:3000/api/signup",
           formData
         );
+        setFormData({
+          username: "",
+          email: "",
+          phone: "",
+          password: "",
+        });
         alert("Đã tạo tài khoản thành công !");
-      } catch (e) {
-        alert("Lỗi khi đăng ký !");
+      } catch (error) {
+        if (error.response && error.response.status === 409) {
+          // Kiểm tra nếu email đã tồn tại
+          alert("Email đã tồn tại!"); // Thiết lập thông báo lỗi
+        } else {
+          alert("Lỗi khi đăng ký !");
+        }
       }
     }
   };

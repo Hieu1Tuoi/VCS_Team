@@ -8,7 +8,7 @@ const PostTable = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/post");
+        const response = await axios.get("http://localhost:3000/api/posts");
         setPosts(response.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -35,11 +35,11 @@ const PostTable = () => {
         <tbody>
           {posts.map((post) => (
             <tr key={post.id}>
-              <td>{post.postId}</td>
-              <td>{post.userId}</td>
-              <td>{post.title}</td>
-              <td>{post.username}</td>
-              <td>{post.status}</td>
+              <td>{post.newsid}</td>
+              <td>{post.newsid}</td>
+              <td>{post.description}</td>
+              <td>{post.price}</td>
+              <td>{post.area}</td>
               <td className="">
                 <Link
                   className="detail-link update-button"
