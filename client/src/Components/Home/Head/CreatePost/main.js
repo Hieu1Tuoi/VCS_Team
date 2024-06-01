@@ -4,13 +4,10 @@ import Back from "../../../Back/back";
 import Slogan from "../../../Slogan/slogan";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { format, parseISO } from "date-fns";
-import Login from "../Login/login";
-import { faBox } from "@fortawesome/free-solid-svg-icons";
-
+import { format } from "date-fns";
 
 function PostForm() {
-  const history = useNavigate();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     postDuration: "",
@@ -30,6 +27,13 @@ function PostForm() {
   const [priceList, setPriceList] = useState([]);
 
   useEffect(() => {
+    // Kiểm tra xem có đối tượng user trong localStorage hay không
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     // Lấy danh sách các quận từ cơ sở dữ liệu
     async function fetchDistricts() {
       try {
@@ -52,7 +56,7 @@ function PostForm() {
 
     fetchDistricts();
     fetchPriceList();
-  }, []); // Thực hiện fetch một lần duy nhất khi component được render
+  }, [navigate]); // Thực hiện fetch một lần duy nhất khi component được render
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -63,8 +67,8 @@ function PostForm() {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title)
-      formDataToSend.append("postDuration", formData.postDuration)
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("postDuration", formData.postDuration);
       formDataToSend.append("describe", formData.describe);
       formDataToSend.append("price", formData.price);
       formDataToSend.append("acreage", formData.acreage);
@@ -73,7 +77,7 @@ function PostForm() {
 
       // Append từng hình ảnh vào formData
       formData.images.forEach((image) => {
-        formDataToSend.append("images", image)
+        formDataToSend.append("images", image);
       });
 
       const response = await axios.post(
@@ -97,7 +101,7 @@ function PostForm() {
         price: "",
         acreage: "",
         address: "",
-        image: [],
+        images: [],
         district: "",
         agreeTerms: false,
       });
@@ -122,7 +126,7 @@ function PostForm() {
   const handleImageChange = (e) => {
     const imageFiles = Array.from(e.target.files); // Get the selected file
     if (imageFiles.length > 5) {
-      alert("Bạn chỉ được chọn tối đa 5 ảnh")
+      alert("Bạn chỉ được chọn tối đa 5 ảnh");
       return;
     }
     setFormData((prevFormData) => ({
@@ -130,9 +134,12 @@ function PostForm() {
       images: imageFiles, // Set the image file in the form data
     }));
   };
-  
+
   const formatMoney = (amount) => {
-    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' }).replace(/\$/, '').replace(/\.00$/, '');
+    return amount
+      .toLocaleString("en-US", { style: "currency", currency: "USD" })
+      .replace(/\$/, "")
+      .replace(/\.00$/, "");
   };
 
   return (
